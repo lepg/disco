@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>disco visualization</title>
+    <style>
+        .visualization-box {
+            width: 300px;
+            height: 300px;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <button id="start">Start</button>
+
+    <div id="container"></div>
+
+	<audio id="audio" preload="auto">
+        <source src="{{AUDIO_FILE}}">
+    </audio>
+
+    <script type="text/javascript">
+        const channels = {{CHANNEL_DATA}};
+    </script>
+
+	<script type="text/javascript">
+		const audio = document.getElementById('audio');
+        const startButton = document.getElementById('start');
+        const container = document.getElementById('container');
+
+
+		function getRandomColor() {
+		  var letters = '456789ABCDEF';
+		  var color = '#';
+		  for (var i = 0; i < 6; i++) {
+		    color += letters[Math.floor(Math.random() * letters.length)];
+		  }
+		  return color;
+		}
+
+		function waitNext(rel, source, last, color){
+			rel.style.backgroundColor = color(rel);
+
+			if(!source.length)
+			    return;
+
+			const next = source.shift();
+			setTimeout(waitNext.bind(null, rel, source, next, color), (next - last) * 1000);
+		}
+
+		function cycle(rel){
+			return rel.style.backgroundColor === 'lightgrey' ? 'black' : 'lightgrey'
+		}
+
+        function createBox() {
+            let box = document.createElement('div');
+            box.className = 'visualization-box';
+            container.appendChild(box);
+            return box;
+        }
+
+        startButton.addEventListener('click', function(e){
+            e.preventDefault();
+            startButton.disabled = true;
+            channels.forEach((channelData) => {
+                waitNext(createBox(), channelData, 0, cycle);
+            });
+            audio.currentTime = {{OFFSET}};
+            audio.play();
+
+        });
+
+
+	</script>
+</body>
+</html>
