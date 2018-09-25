@@ -7,11 +7,16 @@
             width: 300px;
             height: 300px;
             color: black;
+            display: inline-block;
+            margin: 50px;
         }
     </style>
 </head>
 <body>
     <button id="start">Start</button>
+    <button id="pause">Pause</button>
+    <button id="reset">Reset</button>
+
 
     <div id="container"></div>
 
@@ -28,6 +33,8 @@
         const startButton = document.getElementById('start');
         const container = document.getElementById('container');
 
+        const cssAlts = {'purple': 'mediumpurple', 'yellow': 'yellowgreen', 'white': 'black'}
+        let pause = false;
 
 		function getRandomColor() {
 		  var letters = '456789ABCDEF';
@@ -39,17 +46,18 @@
 		}
 
 		function waitNext(rel, source, last, color){
-			rel.style.backgroundColor = color(rel);
+			rel.style.backgroundColor = color(rel, last.color);
 
 			if(!source.length)
 			    return;
 
 			const next = source.shift();
-			setTimeout(waitNext.bind(null, rel, source, next, color), (next - last) * 1000);
+			if(!pause)
+			    setTimeout(waitNext.bind(null, rel, source, next, color), (next.time - last.time) * 1000);
 		}
 
-		function cycle(rel){
-			return rel.style.backgroundColor === 'lightgrey' ? 'black' : 'lightgrey'
+		function cycle(rel, secondary){
+			rel.style.backgroundColor = rel.style.backgroundColor === secondary ? (cssAlts[secondary] || `dark${secondary}`) : secondary
 		}
 
         function createBox() {
@@ -61,16 +69,30 @@
 
         startButton.addEventListener('click', function(e){
             e.preventDefault();
+            pause = false;
             startButton.disabled = true;
             channels.forEach((channelData) => {
-                waitNext(createBox(), channelData, 0, cycle);
+                let box = createBox();
+                channelData.forEach((transition) => {
+                    setTimeout(cycle.bind(null, box, transition.color), transition.time * 1000);
+                });
+                //waitNext(createBox(), channels, {time: 0, color: 'black'}, cycle);
             });
             audio.currentTime = {{OFFSET}};
             audio.play();
 
         });
 
+		document.getElementById('pause').addEventListener('click', function(e){
+		    e.preventDefault();
+		    startButton.disabled = false;
+		    audio.pause();
+		    pause = true;
+
+        })
+
 
 	</script>
+
 </body>
 </html>
